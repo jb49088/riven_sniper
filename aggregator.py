@@ -70,11 +70,12 @@ def build_godrolls():
         weapon = profile[0]
         weapon_profiles[weapon].append(profile)
 
-    # Build profile lists for each weapon and calculate percentiles
+    # Build godroll list with median price filtering and sample count percentiles
     godrolls = []
     for weapon_rolls in weapon_profiles.values():
-        sample_counts = [p[6] for p in weapon_rolls]
+        sample_counts = [p[6] for p in weapon_rolls]  # p[6] is sample_count
 
+        # Calculate percentiles
         profiles_with_percentiles = []
         for profile in weapon_rolls:
             sample_count = profile[6]
@@ -84,7 +85,7 @@ def build_godrolls():
 
         # Filter and get top 5 for this weapon
         top_rolls = [r for r in profiles_with_percentiles if r[7] >= 80]
-        top_rolls.sort(key=lambda x: x[5], reverse=True)
+        top_rolls.sort(key=lambda x: x[5], reverse=True)  # x[5] is median_price
         godrolls.extend(top_rolls[:5])
 
     # Insert into godrolls table
