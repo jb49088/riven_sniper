@@ -3,12 +3,15 @@ import statistics
 from collections import defaultdict
 
 
-def init_database():
-    conn = sqlite3.connect("market.db")
+def init_database(database):
+    """Setup the database with a godrolls table."""
+
+    conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS godrolls")
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE godrolls (
             weapon TEXT,
             stat1 TEXT,
@@ -20,7 +23,8 @@ def init_database():
             sample_percentile REAL,
             PRIMARY KEY (weapon, stat1, stat2, stat3, stat4)
         )
-    """)
+        """
+    )
 
     return conn, cursor
 
@@ -28,21 +32,24 @@ def init_database():
 def build_godrolls():
     """Aggregate listings into godrolls table."""
 
-    conn, cursor = init_database()
+    conn, cursor = init_database("market.db")
 
     # Get all listings
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT weapon, stat1, stat2, stat3, stat4, price
         FROM listings
         WHERE price > 0 AND price < 50000
-    """)
+        """
+    )
 
-    # Group by weapon+stats
+    # Build price lists for each unique riven profile
     profiles = defaultdict(list)
+    breakpoint()
     for row in cursor.fetchall():
         weapon, stat1, stat2, stat3, stat4, price = row
 
-        # Normalize stats: sort positives (1-3), keep negative (4)
+        # Normalize stats: sort positives (1-3)
         positives = [s for s in [stat1, stat2, stat3] if s]
         positives.sort()
         while len(positives) < 3:
@@ -112,3 +119,6 @@ def build_godrolls():
     print(f"Godrolls created: {total} top rolls across {weapons} weapons")
 
     conn.close()
+
+
+build_godrolls()

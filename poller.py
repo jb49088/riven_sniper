@@ -16,13 +16,14 @@ logging.basicConfig(
 
 
 def init_database(database):
-    """Setup the database with a single listings table."""
+    """Setup the database with a listings table."""
 
     db_path = database
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS listings (
             id TEXT PRIMARY KEY,
             seller TEXT NOT NULL,
@@ -35,7 +36,8 @@ def init_database(database):
             price INTEGER NOT NULL,
             scraped_at TIMESTAMP
         )
-    """)
+        """
+    )
 
     return db_path, conn, cursor
 
