@@ -1,15 +1,9 @@
 import datetime
 import logging
+import sqlite3
 
+import bs4
 import requests
-
-from snapshot import (
-    fetch_page,
-    get_riven_market_params,
-    get_riven_market_url,
-    init_database,
-    parse_rivens,
-)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,37 +15,144 @@ logging.basicConfig(
 )
 
 
+def get_riven_market_url():
+    """Return the riven.market API URL."""
+    return "https://riven.market/_modules/riven/showrivens.php"
+
+
+def get_riven_market_params():
+    """Return default scraping parameters for riven.market API."""
+    return {
+        "platform": "ALL",
+        "limit": 200,
+        "recency": -1,
+        "veiled": "false",
+        "onlinefirst": "false",
+        "polarity": "all",
+        "rank": "all",
+        "mastery": 16,
+        "weapon": "Any",
+        "stats": "Any",
+        "neg": "all",
+        "price": 99999,
+        "rerolls": -1,
+        "sort": "time",
+        "direction": "ASC",
+        "page": 1,
+        "time": int(datetime.datetime.now().timestamp() * 1000),
+    }
+
+
+def fetch_riven_market_page(url, params):
+    """Fetch and parse a page."""
+
+    # Update time for cache busting
+    params["time"] = int(datetime.datetime.now().timestamp() * 1000)
+
+    r = requests.get(url, params=params)
+    r.raise_for_status()
+    return bs4.BeautifulSoup(r.text, "html.parser")
+
+
+def parse_riven_market_rivens(soup):
+    """Parse all rivens on a page."""
+
+    rivens = []
+
+    for element in soup.select("div.riven"):
+        # Get seller name
+        seller_div = element.select_one("div.attribute.seller")
+        if not seller_div:
+            continue
+
+        seller_name = seller_div.text.strip().split("\n")[0].strip()
+
+        # Create normalized entry
+        riven = {
+            "id": f"rm_{element['id']}",
+            "seller": seller_name,
+            "source": "riven.market",
+            "weapon": element["data-weapon"].lower().replace(" ", "_"),
+            "stat1": element["data-stat1"],
+            "stat2": element["data-stat2"],
+            "stat3": element["data-stat3"],
+            "stat4": element["data-stat4"],
+            "price": int(element["data-price"]),
+            "scraped_at": datetime.datetime.now().isoformat(),
+        }
+        rivens.append(riven)
+
+    return rivens
+
+
+def init_database(database):
+    """Setup the database with a single listings table."""
+
+    db_path = database
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS listings (
+            id TEXT PRIMARY KEY,
+            seller TEXT NOT NULL,
+            source TEXT NOT NULL,
+            weapon TEXT NOT NULL,
+            stat1 TEXT,
+            stat2 TEXT,
+            stat3 TEXT,
+            stat4 TEXT,
+            price INTEGER NOT NULL,
+            scraped_at TIMESTAMP
+        )
+    """)
+
+    return db_path, conn, cursor
+
+
 def poll_riven_market():
     """Poll first page of riven.market and return normalized data."""
 
     url = get_riven_market_url()
     params = get_riven_market_params()
 
-    soup = fetch_page(url, params)
-    rivens = parse_rivens(soup)
+    soup = fetch_riven_market_page(url, params)
+    rivens = parse_riven_market_rivens(soup)
 
     return rivens
 
 
-def poll_warframe_market():
-    """Poll recent riven listings from warframe.market API and return normalized data."""
+def get_warframe_market_url():
+    """Return the warframe.market API URL."""
+    return "https://api.warframe.market/v1/auctions"
 
-    url = "https://api.warframe.market/v1/auctions"
 
-    params = {
+def get_warframe_market_params():
+    """Return default parameters for warframe.market API."""
+    return {
         "type": "riven",
         "sort": "created_desc",
     }
 
-    # Fetch data
+
+def fetch_warframe_market_auctions():
+    """Fetch raw auction data from warframe.market API."""
+
+    url = get_warframe_market_url()
+    params = get_warframe_market_params()
+
     r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
 
-    auctions = data.get("payload", {}).get("auctions", [])
+    return data.get("payload", {}).get("auctions", [])
 
-    # Parse and normalize auctions
+
+def parse_warframe_market_rivens(auctions):
+    """Parse and normalize warframe.market auctions."""
+
     rivens = []
+
     for auction in auctions:
         # Only include direct sell listings
         if not auction.get("is_direct_sell", False):
@@ -84,6 +185,15 @@ def poll_warframe_market():
             "scraped_at": datetime.datetime.now().isoformat(),
         }
         rivens.append(riven)
+
+    return rivens
+
+
+def poll_warframe_market():
+    """Poll recent riven listings from warframe.market API and return normalized data."""
+
+    auctions = fetch_warframe_market_auctions()
+    rivens = parse_warframe_market_rivens(auctions)
 
     return rivens
 
