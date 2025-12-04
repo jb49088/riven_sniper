@@ -11,8 +11,8 @@ from snapshot import (
 )
 
 
-def scrape_riven_market():
-    """Scrape first page of riven.market and return normalized data"""
+def poll_riven_market():
+    """Poll first page of riven.market and return normalized data."""
 
     url = get_riven_market_url()
     params = get_riven_market_params()
@@ -23,8 +23,8 @@ def scrape_riven_market():
     return rivens
 
 
-def scrape_warframe_market():
-    """Scrape recent riven listings from warframe.market API and return normalized data"""
+def poll_warframe_market():
+    """Poll recent riven listings from warframe.market API and return normalized data."""
 
     url = "https://api.warframe.market/v1/auctions"
 
@@ -78,7 +78,7 @@ def scrape_warframe_market():
     return rivens
 
 
-def insert_listing(listing, existing_ids, cursor, new_count):
+def insert_listing(listing, existing_ids, cursor):
     if listing["id"] not in existing_ids:
         cursor.execute(
             """
@@ -98,11 +98,10 @@ def insert_listing(listing, existing_ids, cursor, new_count):
             ),
         )
         existing_ids.add(listing["id"])
-        new_count += 1
 
 
-def update_listings_with_new():
-    """Scrape both sites and append only new listings to listings."""
+def main():
+    """Poll both sites and append only new listings to listings."""
 
     db_path, conn, cursor = init_database("market.db")
 
@@ -110,23 +109,25 @@ def update_listings_with_new():
     cursor.execute("SELECT id FROM listings")
     existing_ids = {row[0] for row in cursor.fetchall()}
 
-    new_count = 0
+    initial_count = len(existing_ids)
 
-    # Scrape riven.market
-    print("Scraping riven.market...")
-    rm_listings = scrape_riven_market()
-    for listing in rm_listings:
-        insert_listing(listing, existing_ids, cursor, new_count)
+    print("Polling riven.market...")
+    for listing in poll_riven_market():
+        insert_listing(listing, existing_ids, cursor)
 
-    # Scrape warframe.market
-    print("Scraping warframe.market...")
-    wm_listings = scrape_warframe_market()
-    for listing in wm_listings:
-        insert_listing(listing, existing_ids, cursor, new_count)
+    print("Polling warframe.market...")
+    for listing in poll_warframe_market():
+        insert_listing(listing, existing_ids, cursor)
 
     conn.commit()
     conn.close()
 
+    new_count = len(existing_ids) - initial_count
     print(f"\nAdded {new_count} new listings")
 
-    return new_count
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Poller interrupted")
