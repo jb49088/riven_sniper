@@ -3,13 +3,10 @@ import statistics
 from collections import defaultdict
 
 
-def build_godrolls():
-    """Aggregate listings into godrolls table (top 5 per weapon)"""
-
+def init_database():
     conn = sqlite3.connect("market.db")
     cursor = conn.cursor()
 
-    # Create godrolls table
     cursor.execute("DROP TABLE IF EXISTS godrolls")
     cursor.execute("""
         CREATE TABLE godrolls (
@@ -24,6 +21,14 @@ def build_godrolls():
             PRIMARY KEY (weapon, stat1, stat2, stat3, stat4)
         )
     """)
+
+    return conn, cursor
+
+
+def build_godrolls():
+    """Aggregate listings into godrolls table."""
+
+    conn, cursor = init_database()
 
     # Get all listings
     cursor.execute("""
