@@ -45,7 +45,6 @@ def build_godrolls():
 
     # Build price lists for each unique riven profile
     profiles = defaultdict(list)
-    breakpoint()
     for row in cursor.fetchall():
         weapon, stat1, stat2, stat3, stat4, price = row
 
