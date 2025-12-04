@@ -72,7 +72,7 @@ def build_godrolls():
 
     # Build profile lists for each weapon and calculate percentiles
     godrolls = []
-    for weapon, weapon_rolls in weapon_profiles.items():
+    for weapon_rolls in weapon_profiles.values():
         sample_counts = [p[6] for p in weapon_rolls]
 
         profiles_with_percentiles = []
