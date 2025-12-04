@@ -78,6 +78,29 @@ def scrape_warframe_market():
     return rivens
 
 
+def insert_listing(listing, existing_ids, cursor, new_count):
+    if listing["id"] not in existing_ids:
+        cursor.execute(
+            """
+            INSERT OR REPLACE INTO listings VALUES (?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                listing["id"],
+                listing["seller"],
+                listing["source"],
+                listing["weapon"],
+                listing["stat1"],
+                listing["stat2"],
+                listing["stat3"],
+                listing["stat4"],
+                listing["price"],
+                listing["scraped_at"],
+            ),
+        )
+        existing_ids.add(listing["id"])
+        new_count += 1
+
+
 def update_listings_with_new():
     """Scrape both sites and append only new listings to listings."""
 
@@ -93,51 +116,13 @@ def update_listings_with_new():
     print("Scraping riven.market...")
     rm_listings = scrape_riven_market()
     for listing in rm_listings:
-        if listing["id"] not in existing_ids:
-            cursor.execute(
-                """
-                INSERT OR REPLACE INTO listings VALUES (?,?,?,?,?,?,?,?,?,?)
-                """,
-                (
-                    listing["id"],
-                    listing["seller"],
-                    listing["source"],
-                    listing["weapon"],
-                    listing["stat1"],
-                    listing["stat2"],
-                    listing["stat3"],
-                    listing["stat4"],
-                    listing["price"],
-                    listing["scraped_at"],
-                ),
-            )
-            existing_ids.add(listing["id"])
-            new_count += 1
+        insert_listing(listing, existing_ids, cursor, new_count)
 
     # Scrape warframe.market
     print("Scraping warframe.market...")
     wm_listings = scrape_warframe_market()
     for listing in wm_listings:
-        if listing["id"] not in existing_ids:
-            cursor.execute(
-                """
-                INSERT OR REPLACE INTO listings VALUES (?,?,?,?,?,?,?,?,?,?)
-                """,
-                (
-                    listing["id"],
-                    listing["seller"],
-                    listing["source"],
-                    listing["weapon"],
-                    listing["stat1"],
-                    listing["stat2"],
-                    listing["stat3"],
-                    listing["stat4"],
-                    listing["price"],
-                    listing["scraped_at"],
-                ),
-            )
-            existing_ids.add(listing["id"])
-            new_count += 1
+        insert_listing(listing, existing_ids, cursor, new_count)
 
     conn.commit()
     conn.close()
