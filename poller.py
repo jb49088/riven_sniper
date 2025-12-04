@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import requests
 
@@ -8,6 +9,15 @@ from snapshot import (
     get_riven_market_url,
     init_database,
     parse_rivens,
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("poller.log"),
+        logging.StreamHandler(),
+    ],
 )
 
 
@@ -111,19 +121,25 @@ def main():
 
     initial_count = len(existing_ids)
 
-    print("Polling riven.market...")
-    for listing in poll_riven_market():
-        insert_listing(listing, existing_ids, cursor)
+    logging.info("Polling riven.market...")
+    try:
+        for listing in poll_riven_market():
+            insert_listing(listing, existing_ids, cursor)
+    except Exception as e:
+        logging.error(f"Failed to poll riven.market: {e}")
 
-    print("Polling warframe.market...")
-    for listing in poll_warframe_market():
-        insert_listing(listing, existing_ids, cursor)
+    logging.info("Polling warframe.market...")
+    try:
+        for listing in poll_warframe_market():
+            insert_listing(listing, existing_ids, cursor)
+    except Exception as e:
+        logging.error(f"Failed to poll warframe.market: {e}")
 
     conn.commit()
     conn.close()
 
     new_count = len(existing_ids) - initial_count
-    print(f"\nAdded {new_count} new listings")
+    logging.info(f"Added {new_count} new listings")
 
 
 if __name__ == "__main__":
