@@ -23,11 +23,12 @@ SUM:                             4            113             74            311
 ```
 riven_sniper
 ├── aggregator.py
+├── logs
 ├── market.db
 ├── poller.py
 ├── README.md
 └── snapshot.py
 
-1 directory, 5 files
+2 directories, 5 files
 ```
 <!-- PROJECT_STRUCTURE_END -->

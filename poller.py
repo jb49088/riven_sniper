@@ -15,7 +15,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("poller.log"),
+        logging.FileHandler("logs/poller.log"),
         logging.StreamHandler(),
     ],
 )
@@ -111,7 +111,7 @@ def insert_listing(listing, existing_ids, cursor):
 
 
 def main():
-    """Poll both sites and append only new listings to listings."""
+    """Poll both sites and append only new listings to the listings table."""
 
     db_path, conn, cursor = init_database("market.db")
 
