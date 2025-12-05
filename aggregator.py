@@ -113,7 +113,7 @@ def display_stats(cursor):
     logging.info(f"Godrolls created: {total} top rolls across {weapons} weapons")
 
 
-def main():
+def aggregator():
     """Aggregate listings into godrolls table."""
 
     conn, cursor = init_database("market.db")
@@ -154,6 +154,6 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        aggregator()
     except KeyboardInterrupt:
         print("Aggregator interrupted")

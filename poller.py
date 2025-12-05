@@ -223,7 +223,7 @@ def parse_warframe_market_rivens(auctions):
     return rivens
 
 
-def main():
+def poller():
     """Poll both sites and append only new listings to the listings table."""
 
     db_path, conn, cursor = init_database("market.db")
@@ -257,6 +257,6 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        poller()
     except KeyboardInterrupt:
         print("Poller interrupted")
