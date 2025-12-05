@@ -165,7 +165,7 @@ def send_discord_webhook(message):
 
 
 def monitor(database="market.db", threshold=0.60):
-    """Main monitoring function to be called after aggregation."""
+    """Monitor and alert on deals."""
 
     init_alerted_table(database)
 
