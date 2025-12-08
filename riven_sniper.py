@@ -4,6 +4,7 @@
 
 import datetime
 import logging
+import socket
 from pathlib import Path
 
 from aggregator import aggregator
@@ -18,6 +19,16 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
+
+
+def check_connection():
+    """Quick connection check before starting."""
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=3)
+        return True
+    except OSError:
+        logging.warning("No internet connection, skipping run")
+        return False
 
 
 def should_aggregate():
@@ -41,6 +52,9 @@ def should_aggregate():
 
 
 def riven_sniper():
+    if not check_connection():
+        return
+
     logging.info("Starting riven_sniper pipeline...")
 
     try:
