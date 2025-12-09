@@ -8,6 +8,15 @@ import requests
 from config import DATABASE
 
 
+def normalize_riven_stats(stat1, stat2, stat3, stat4):
+    """Normalize riven stats by sorting positives."""
+    positives = [s for s in [stat1, stat2, stat3] if s]
+    positives.sort()
+    while len(positives) < 3:
+        positives.append("")
+    return tuple(positives + [stat4])
+
+
 def init_database(database):
     """Setup the database with a listings table."""
     db_path = database
@@ -133,6 +142,10 @@ def poll_riven_market():
 
 def insert_listing(listing, existing_ids, cursor):
     if listing["id"] not in existing_ids:
+        stat1, stat2, stat3, stat4 = normalize_riven_stats(
+            listing["stat1"], listing["stat2"], listing["stat3"], listing["stat4"]
+        )
+
         cursor.execute(
             """
             INSERT OR REPLACE INTO listings
@@ -143,10 +156,10 @@ def insert_listing(listing, existing_ids, cursor):
                 listing["seller"],
                 listing["source"],
                 listing["weapon"],
-                listing["stat1"],
-                listing["stat2"],
-                listing["stat3"],
-                listing["stat4"],
+                stat1,
+                stat2,
+                stat3,
+                stat4,
                 listing["price"],
                 listing["scraped_at"],
             ),

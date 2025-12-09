@@ -8,6 +8,7 @@ from poller import (
     get_riven_market_params,
     get_riven_market_url,
     init_database,
+    normalize_riven_stats,
     parse_riven_market_rivens,
 )
 
@@ -37,26 +38,32 @@ def get_total_count(url, params, headers):
 
 def insert_batch(cursor, conn, rivens):
     """Insert a batch of listings into the database."""
-    cursor.executemany(
-        """
-        INSERT OR REPLACE INTO listings
-        VALUES (?,?,?,?,?,?,?,?,?,?)
-        """,
-        [
+    normalized_rivens = []
+    for r in rivens:
+        stat1, stat2, stat3, stat4 = normalize_riven_stats(
+            r["stat1"], r["stat2"], r["stat3"], r["stat4"]
+        )
+        normalized_rivens.append(
             (
                 r["id"],
                 r["seller"],
                 r["source"],
                 r["weapon"],
-                r["stat1"],
-                r["stat2"],
-                r["stat3"],
-                r["stat4"],
+                stat1,
+                stat2,
+                stat3,
+                stat4,
                 r["price"],
                 r["scraped_at"],
             )
-            for r in rivens
-        ],
+        )
+
+    cursor.executemany(
+        """
+        INSERT OR REPLACE INTO listings
+        VALUES (?,?,?,?,?,?,?,?,?,?)
+        """,
+        normalized_rivens,
     )
     conn.commit()
 
