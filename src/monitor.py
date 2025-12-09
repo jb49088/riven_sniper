@@ -98,7 +98,7 @@ def format_riven_stats(stats):
     positives = [s for s in stats[:-1] if s]
     negative = stats[-1]
 
-    inverted_stats = {"Reload", "Recoil"}
+    inverted_stats = {"reload_speed", "recoil"}
 
     formatted = []
 
@@ -110,7 +110,7 @@ def format_riven_stats(stats):
         sign = "+" if negative in inverted_stats else "-"
         formatted.append(f"{sign}{negative}")
 
-    return " ".join(formatted)
+    return " ".join(formatted).replace("_", " ").title()
 
 
 def send_alert(deal):
