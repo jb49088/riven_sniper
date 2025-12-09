@@ -2,13 +2,13 @@ import datetime
 import logging
 
 from config import DATABASE
+from normalizer import normalize
 from poller import (
     fetch_riven_market_page,
     get_headers,
     get_riven_market_params,
     get_riven_market_url,
     init_database,
-    normalize_riven_stats,
     parse_riven_market_rivens,
 )
 
@@ -24,9 +24,7 @@ logging.basicConfig(
 def get_total_count(url, params, headers):
     """Extract total riven and page count."""
     soup = fetch_riven_market_page(url, params, headers)
-
     pagination_div = soup.select_one("div.pagination")
-
     if not pagination_div:
         return 0, 1
 
@@ -39,10 +37,24 @@ def get_total_count(url, params, headers):
 def insert_batch(cursor, conn, rivens):
     """Insert a batch of listings into the database."""
     normalized_rivens = []
+    skipped_count = 0
+
     for r in rivens:
-        stat1, stat2, stat3, stat4 = normalize_riven_stats(
-            r["stat1"], r["stat2"], r["stat3"], r["stat4"]
+        # Normalize stats using the source-specific mapping
+        normalized = normalize(
+            r["stat1"], r["stat2"], r["stat3"], r["stat4"], r["source"]
         )
+
+        # Skip if normalization failed (invalid/unmapped stats)
+        if normalized is None:
+            skipped_count += 1
+            logging.warning(
+                f"Skipping listing {r['id']} - unmapped stats: {r['stat1']}, {r['stat2']}, {r['stat3']}, {r['stat4']}"
+            )
+            continue
+
+        stat1, stat2, stat3, stat4 = normalized
+
         normalized_rivens.append(
             (
                 r["id"],
@@ -67,6 +79,9 @@ def insert_batch(cursor, conn, rivens):
     )
     conn.commit()
 
+    if skipped_count > 0:
+        logging.info(f"Skipped {skipped_count} listings with unmapped stats")
+
 
 def display_stats(start_time, total_scraped, db_path):
     """Display runtime statistics."""
@@ -84,6 +99,7 @@ def scraper():
     url = get_riven_market_url()
     params = get_riven_market_params()
     headers = get_headers()
+
     db_path, conn, cursor = init_database(DATABASE)
 
     logging.info("Fetching total count...")
@@ -116,6 +132,7 @@ def scraper():
             break
 
     conn.close()
+
     display_stats(start_time, total_scraped, db_path)
 
 
