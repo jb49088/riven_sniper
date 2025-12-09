@@ -6,15 +6,7 @@ import bs4
 import requests
 
 from config import DATABASE
-
-
-def normalize_riven_stats(stat1, stat2, stat3, stat4):
-    """Normalize riven stats by sorting positives."""
-    positives = [s for s in [stat1, stat2, stat3] if s]
-    positives.sort()
-    while len(positives) < 3:
-        positives.append("")
-    return tuple(positives + [stat4])
+from normalizer import normalize
 
 
 def init_database(database):
@@ -142,9 +134,23 @@ def poll_riven_market():
 
 def insert_listing(listing, existing_ids, cursor):
     if listing["id"] not in existing_ids:
-        stat1, stat2, stat3, stat4 = normalize_riven_stats(
-            listing["stat1"], listing["stat2"], listing["stat3"], listing["stat4"]
+        # Normalize stats using the source-specific mapping
+        normalized = normalize(
+            listing["stat1"],
+            listing["stat2"],
+            listing["stat3"],
+            listing["stat4"],
+            listing["source"],
         )
+
+        # Skip if normalization failed (invalid/unmapped stats)
+        if normalized is None:
+            logging.warning(
+                f"Skipping listing {listing['id']} - unmapped stats: {listing['stat1']}, {listing['stat2']}, {listing['stat3']}, {listing['stat4']}"
+            )
+            return
+
+        stat1, stat2, stat3, stat4 = normalized
 
         cursor.execute(
             """
