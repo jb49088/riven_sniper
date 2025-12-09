@@ -7,9 +7,9 @@ import logging
 import socket
 from pathlib import Path
 
-from aggregator import aggregator
+from aggregator import aggregate
 from monitor import monitor
-from poller import poller
+from poller import poll
 
 logging.basicConfig(
     level=logging.INFO,
@@ -59,14 +59,14 @@ def riven_sniper():
     logging.info("Starting riven_sniper pipeline...")
 
     try:
-        poller()
+        poll()
     except Exception as e:
         logging.error(f"Poller failed: {e}")
         return
 
     if should_aggregate():
         try:
-            aggregator()
+            aggregate()
         except Exception as e:
             logging.error(f"Aggregator failed: {e}")
 
