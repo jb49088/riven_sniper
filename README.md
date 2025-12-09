@@ -28,15 +28,14 @@ riven_sniper
 │   └── market.db
 ├── logs
 ├── README.md
-├── src
-│   ├── aggregator.py
-│   ├── config.py
-│   ├── monitor.py
-│   ├── poller.py
-│   ├── riven_sniper.py
-│   └── scraper.py
-└── your_database.db
+└── src
+    ├── aggregator.py
+    ├── config.py
+    ├── monitor.py
+    ├── poller.py
+    ├── riven_sniper.py
+    └── scraper.py
 
-4 directories, 9 files
+4 directories, 8 files
 ```
 <!-- PROJECT_STRUCTURE_END -->
