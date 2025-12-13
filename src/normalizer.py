@@ -142,8 +142,3 @@ def normalize(stat1, stat2, stat3, stat4, source):
 
     # Sort positive stats
     return sort_positive_stats(*normalized)
-
-
-def is_valid_listing(stat1, stat2, stat3, stat4):
-    stats = [stat1, stat2, stat3, stat4]
-    return all(s in CANONICAL_STATS or s == "" for s in stats)
