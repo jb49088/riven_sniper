@@ -94,7 +94,7 @@ def display_stats(start_time, total_scraped, db_path):
     logging.info(f"Listings table saved to: {db_path}")
 
 
-def scraper():
+def scrape():
     """One-time full scrape of riven.market for historical data."""
     url = get_riven_market_url()
     params = get_riven_market_params()
@@ -138,6 +138,6 @@ def scraper():
 
 if __name__ == "__main__":
     try:
-        scraper()
+        scrape()
     except KeyboardInterrupt:
         logging.info("Scraper interrupted")
