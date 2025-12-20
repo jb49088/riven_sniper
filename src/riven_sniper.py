@@ -4,12 +4,13 @@
 
 import datetime
 import logging
+import random
 import socket
 import time
 from pathlib import Path
 
 from aggregator import aggregate
-from config import POLL_INTERVAL
+from config import POLL_INTERVAL, POLL_JITTER
 from monitor import monitor
 from poller import poll
 
@@ -95,7 +96,8 @@ def riven_sniper():
             logging.error(f"Pipeline error: {e}")
 
         elapsed = time.time() - start_time
-        sleep_time = max(0, POLL_INTERVAL - elapsed)
+        jitter = random.uniform(-POLL_JITTER, POLL_JITTER)
+        sleep_time = max(0, POLL_INTERVAL + jitter - elapsed)
 
         if sleep_time > 0:
             next_time = datetime.datetime.now() + datetime.timedelta(seconds=sleep_time)
