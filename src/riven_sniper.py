@@ -79,7 +79,9 @@ def run_pipeline():
 
 def riven_sniper():
     """Main entry point for riven_sniper."""
-    logging.info(f"Starting riven_sniper (polling every {POLL_INTERVAL}s)")
+    logging.info(
+        f"Starting riven_sniper (poll interval: {POLL_INTERVAL}s ± {POLL_JITTER}s)"
+    )
     logging.info("Press Ctrl+C to stop")
 
     poll_count = 0
