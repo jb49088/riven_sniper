@@ -5,8 +5,11 @@ import sqlite3
 import time
 
 import requests
+from dotenv import load_dotenv
 
 from config import DATABASE, DEAL_THRESHOLD
+
+load_dotenv()
 
 
 def init_alerted_table(database):
@@ -145,7 +148,7 @@ def push_notification(message):
         print("PUSHOVER_USER_KEY not set")
         return
 
-    if not user_key:
+    if not application_key:
         print("PUSHOVER_APPLICATION_KEY not set")
         return
 
