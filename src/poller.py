@@ -48,7 +48,9 @@ def init_database(database):
 def get_headers():
     """Return Firefox browser headers."""
     return {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
     }
 
 
