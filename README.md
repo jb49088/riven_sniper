@@ -1,6 +1,6 @@
 # riven_sniper
 
-An automated [Warframe](https://www.warframe.com/) [riven mod](https://warframe.fandom.com/wiki/Riven_Mods) deal finder. Continuously scrapes [riven.market](https://riven.market/) and [warframe.market](https://warframe.market/), identifies top-tier stats combinations (godrolls) from historical pricing data, and sends instant [Pushover](https://pushover.net/) alerts when underpriced rivens appear. Runs on a [Raspberry Pi](https://www.raspberrypi.com/) with minutely polling to catch good deals before they're gone.
+An automated [Warframe](https://www.warframe.com/) [riven mod](https://warframe.fandom.com/wiki/Riven_Mods) deal finder. Continuously scrapes [riven.market](https://riven.market/) and [warframe.market](https://warframe.market/), identifies top-tier stats combinations (godrolls) from historical pricing data, and sends instant [Pushover](https://pushover.net/) alerts when underpriced rivens appear. Runs on a [Raspberry Pi](https://www.raspberrypi.com/) with 10-second polling to catch good deals before they're gone.
 
 <!-- CODE_STATISTICS_START -->
 
@@ -10,10 +10,10 @@ An automated [Warframe](https://www.warframe.com/) [riven mod](https://warframe.
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Python                           7            193            130            672
-Markdown                         1              8              4             29
+Python                           7            199            131            697
+Markdown                         1             10              4             29
 -------------------------------------------------------------------------------
-SUM:                             8            201            134            701
+SUM:                             8            209            135            726
 -------------------------------------------------------------------------------
 ```
 <!-- CODE_STATISTICS_END -->

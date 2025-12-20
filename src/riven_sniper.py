@@ -5,9 +5,11 @@
 import datetime
 import logging
 import socket
+import time
 from pathlib import Path
 
 from aggregator import aggregate
+from config import POLL_INTERVAL
 from monitor import monitor
 from poller import poll
 
@@ -51,12 +53,10 @@ def should_aggregate():
     return False
 
 
-def riven_sniper():
-    """Main entry point for riven_sniper"""
+def run_pipeline():
+    """Run one iteration of the pipeline."""
     if not check_connection():
         return
-
-    logging.info("Starting riven_sniper pipeline...")
 
     try:
         poll()
@@ -75,13 +75,44 @@ def riven_sniper():
     except Exception as e:
         logging.error(f"Monitor failed: {e}")
 
-    logging.info("Pipeline complete")
+
+def riven_sniper():
+    """Main entry point for riven_sniper."""
+    logging.info(f"Starting riven_sniper (polling every {POLL_INTERVAL}s)")
+    logging.info("Press Ctrl+C to stop")
+
+    poll_count = 0
+
+    while True:
+        poll_count += 1
+        start_time = time.time()
+
+        logging.info(f"=== Poll #{poll_count} ===")
+
+        try:
+            run_pipeline()
+        except Exception as e:
+            logging.error(f"Pipeline error: {e}")
+
+        elapsed = time.time() - start_time
+        sleep_time = max(0, POLL_INTERVAL - elapsed)
+
+        if sleep_time > 0:
+            next_time = datetime.datetime.now() + datetime.timedelta(seconds=sleep_time)
+            logging.info(
+                f"Poll complete in {elapsed:.1f}s. Next poll at {next_time.strftime('%H:%M:%S')}"
+            )
+            time.sleep(sleep_time)
+        else:
+            logging.warning(
+                f"Poll took {elapsed:.1f}s (exceeds {POLL_INTERVAL}s interval)"
+            )
 
 
 if __name__ == "__main__":
     try:
         riven_sniper()
     except KeyboardInterrupt:
-        logging.info("Riven sniper interrupted")
+        logging.info("Riven sniper stopped")
     except Exception as e:
         logging.error(f"Fatal error: {e}")

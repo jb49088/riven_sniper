@@ -8,3 +8,4 @@ GODROLL_COUNT = 5  # Top N godrolls to track per weapon
 
 # Monitoring - deal detection
 DEAL_THRESHOLD = 0.60  # Alert on listings <= 60% of median price
+POLL_INTERVAL = 10  # Seconds between polling
