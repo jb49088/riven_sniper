@@ -35,6 +35,7 @@ CANONICAL_STATS = {
 RIVEN_MARKET_TO_CANONICAL = {
     "Ammo": "ammo_max",
     "ComboGainExtra": "combo_count_chance",
+    "ComboGainLost": "combo_count_loss",
     "Corpus": "corpus_damage",
     "Grineer": "grineer_damage",
     "Infested": "infested_damage",
