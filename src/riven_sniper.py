@@ -5,7 +5,6 @@
 import datetime
 import logging
 import random
-import socket
 import time
 from pathlib import Path
 
@@ -22,16 +21,6 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
-
-
-def check_connection():
-    """Internet connection check."""
-    try:
-        socket.create_connection(("8.8.8.8", 53), timeout=3)
-        return True
-    except OSError:
-        logging.warning("No internet connection, skipping run")
-        return False
 
 
 def should_aggregate():
@@ -56,9 +45,6 @@ def should_aggregate():
 
 def run_pipeline():
     """Run one iteration of the pipeline."""
-    if not check_connection():
-        return
-
     try:
         poll()
     except Exception as e:
