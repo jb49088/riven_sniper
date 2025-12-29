@@ -219,7 +219,12 @@ def parse_warframe_market_rivens(auctions):
         if not auction.get("is_direct_sell", False):
             continue
 
+        # Skip non-riven items (lich/sister listings)
+        if auction.get("item", {}).get("type") != "riven":
+            continue
+
         item = auction.get("item", {})
+
         attributes = item.get("attributes", [])
 
         # Separate positive and negative stats
