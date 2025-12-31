@@ -2,8 +2,6 @@
 # =                                 RIVEN_SNIPER                                 =
 # ================================================================================
 
-# TODO: investigate read timed out error.
-
 import datetime
 import logging
 import random
