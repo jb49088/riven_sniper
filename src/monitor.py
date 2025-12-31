@@ -1,5 +1,3 @@
-# TODO: figure out whats going on with service.log and service_error.log
-
 import datetime
 import logging
 import os
@@ -171,11 +169,11 @@ def push_notification(message: str) -> None:
     user_key = os.getenv("PUSHOVER_USER_KEY")
 
     if not user_key:
-        print("PUSHOVER_USER_KEY not set")
+        logging.error("PUSHOVER_USER_KEY not set")
         return
 
     if not application_key:
-        print("PUSHOVER_APPLICATION_KEY not set")
+        logging.error("PUSHOVER_APPLICATION_KEY not set")
         return
 
     try:
@@ -188,9 +186,9 @@ def push_notification(message: str) -> None:
             },
         )
         r.raise_for_status()
-        print("Pushover notification sent successfully")
+        logging.info("Pushover notification sent successfully")
     except Exception as e:
-        print(f"Failed to send Pushover notification: {e}")
+        logging.error(f"Failed to send Pushover notification: {e}")
 
 
 def monitor(database: Path = DATABASE, threshold: float = DEAL_THRESHOLD) -> None:
