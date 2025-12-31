@@ -88,7 +88,8 @@ def riven_sniper() -> Never:
 
         elapsed = time.time() - start_time
         jitter = random.uniform(-POLL_JITTER, POLL_JITTER)
-        sleep_time = max(0, POLL_INTERVAL + jitter - elapsed)
+        target_interval = POLL_INTERVAL + jitter
+        sleep_time = max(0, target_interval - elapsed)
 
         if sleep_time > 0:
             next_time = datetime.datetime.now() + datetime.timedelta(seconds=sleep_time)
@@ -98,7 +99,7 @@ def riven_sniper() -> Never:
             time.sleep(sleep_time)
         else:
             logging.warning(
-                f"Poll took {elapsed:.1f}s (exceeds {POLL_INTERVAL}s interval)"
+                f"Poll took {elapsed:.1f}s (exceeds target interval of {target_interval:.1f}s)"
             )
 
 
