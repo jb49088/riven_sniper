@@ -1,8 +1,12 @@
+# TODO: figure out whats going on with service.log and service_error.log
+
 import datetime
 import logging
 import os
 import sqlite3
 import time
+from pathlib import Path
+from typing import TypedDict
 
 import requests
 from dotenv import load_dotenv
@@ -12,8 +16,22 @@ from config import DATABASE, DEAL_THRESHOLD
 load_dotenv()
 
 
-def init_alerted_table(database):
-    """Create table to track alerted listings if it doesn't exist."""
+class Deal(TypedDict):
+    id: str
+    weapon: str
+    stats: list[str]
+    price: int
+    median_price: float
+    discount_percentage: float
+    seller: str
+    source: str
+    scraped_at: str
+    sample_count: int
+    sample_count_percentile: float
+
+
+def init_alerted_table(database: Path) -> None:
+    """Initialize database with alerted_listings table."""
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute("""
@@ -25,10 +43,11 @@ def init_alerted_table(database):
     conn.close()
 
 
-def find_deals(database, threshold):
+def find_deals(database: Path, threshold: float) -> list[Deal]:
     """Find new listings that are below the median price threshold."""
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
+
     deals = []
 
     # Get already alerted listings
@@ -39,9 +58,16 @@ def find_deals(database, threshold):
     current_godrolls = cursor.fetchall()
 
     for godroll in current_godrolls:
-        weapon, stat1, stat2, stat3, stat4, median_price, sample_count, percentile = (
-            godroll
-        )
+        (
+            weapon,
+            stat1,
+            stat2,
+            stat3,
+            stat4,
+            median_price,
+            sample_count,
+            sample_count_percentile,
+        ) = godroll
 
         cursor.execute(
             """
@@ -56,7 +82,7 @@ def find_deals(database, threshold):
             (weapon, stat1, stat2, stat3, stat4, median_price * threshold),
         )
 
-        cheap_listings = cursor.fetchall()
+        cheap_listings: list[tuple[str, int, str, str, str]] = cursor.fetchall()
 
         if cheap_listings:
             for listing in cheap_listings:
@@ -66,7 +92,7 @@ def find_deals(database, threshold):
                 if listing_id in alerted:
                     continue
 
-                discount_pct = ((median_price - price) / median_price) * 100
+                discount_percentage = ((median_price - price) / median_price) * 100
 
                 deals.append(
                     {
@@ -75,12 +101,12 @@ def find_deals(database, threshold):
                         "stats": [stat1, stat2, stat3, stat4],
                         "price": price,
                         "median_price": median_price,
-                        "discount_pct": discount_pct,
+                        "discount_percentage": discount_percentage,
                         "seller": seller,
                         "source": source,
                         "scraped_at": scraped_at,
                         "sample_count": sample_count,
-                        "percentile": percentile,
+                        "sample_count_percentile": sample_count_percentile,
                     }
                 )
 
@@ -96,7 +122,7 @@ def find_deals(database, threshold):
     return deals
 
 
-def format_riven_stats(stats):
+def format_riven_stats(stats: list[str]) -> str:
     """Format riven stats with correct signs."""
     positives = [s for s in stats[:-1] if s]
     negative = stats[-1]
@@ -116,8 +142,8 @@ def format_riven_stats(stats):
     return " ".join(formatted).replace("_", " ").title()
 
 
-def send_alert(deal):
-    """Send alert for a good deal."""
+def send_alert(deal: Deal) -> None:
+    """Format and send alert for a good deal."""
     weapon = deal["weapon"].replace("_", " ").title()
     stats = format_riven_stats(deal["stats"])
     dt = datetime.datetime.fromisoformat(deal["scraped_at"])
@@ -128,8 +154,8 @@ def send_alert(deal):
     Stats: {stats}
     Price: {deal["price"]}p
     Median: {deal["median_price"]}p
-    Discount: {deal["discount_pct"]:.1f}%
-    Sample: {deal["sample_count"]} listings (top {deal["percentile"]:.0f}%)
+    Discount: {deal["discount_percentage"]:.1f}%
+    Sample: {deal["sample_count"]} listings (top {deal["sample_count_percentile"]:.0f}%)
     Seller: {deal["seller"]}
     Source: {deal["source"]}
     Scraped: {formatted_time}
@@ -139,7 +165,7 @@ def send_alert(deal):
     push_notification(message)
 
 
-def push_notification(message):
+def push_notification(message: str) -> None:
     """Push notification to Pushover."""
     application_key = os.getenv("PUSHOVER_APPLICATION_KEY")
     user_key = os.getenv("PUSHOVER_USER_KEY")
@@ -153,7 +179,7 @@ def push_notification(message):
         return
 
     try:
-        response = requests.post(
+        r = requests.post(
             "https://api.pushover.net/1/messages.json",
             data={
                 "token": application_key,
@@ -161,13 +187,13 @@ def push_notification(message):
                 "message": message,
             },
         )
-        response.raise_for_status()
+        r.raise_for_status()
         print("Pushover notification sent successfully")
     except Exception as e:
         print(f"Failed to send Pushover notification: {e}")
 
 
-def monitor(database=DATABASE, threshold=DEAL_THRESHOLD):
+def monitor(database: Path = DATABASE, threshold: float = DEAL_THRESHOLD) -> None:
     """Monitor and alert on deals."""
     init_alerted_table(database)
 
@@ -179,7 +205,6 @@ def monitor(database=DATABASE, threshold=DEAL_THRESHOLD):
         time.sleep(1)
 
     logging.info(f"Monitor complete. Found {len(deals)} deals")
-    return len(deals)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+# TODO: change electric -> electricity in canonical stat mapping and in existing listings
+
 CANONICAL_STATS = {
     "ammo_max",
     "cold",
@@ -103,13 +105,15 @@ WARFRAME_MARKET_TO_CANONICAL = {
 }
 
 
-def normalize_weapon_name(weapon):
+def normalize_weapon_name(weapon: str) -> str:
+    """Convert weapon name to lowercase with underscores."""
     if not weapon:
         return ""
     return weapon.lower().replace(" ", "_").replace("-", "_")
 
 
-def normalize_stat_name(stat, source):
+def normalize_stat_name(stat: str, source: str) -> str | None:
+    """Convert stat name to canonical value."""
     if source == "riven.market":
         return RIVEN_MARKET_TO_CANONICAL.get(stat)
     elif source == "warframe.market":
@@ -117,7 +121,10 @@ def normalize_stat_name(stat, source):
     return None
 
 
-def normalize_riven_stats(stat1, stat2, stat3, stat4, source):
+def normalize_riven_stats(
+    stat1: str, stat2: str, stat3: str, stat4: str, source: str
+) -> tuple[str, str, str, str] | None:
+    """Convert riven stats to canonical values."""
     normalized = []
 
     for stat in [stat1, stat2, stat3, stat4]:
@@ -133,7 +140,10 @@ def normalize_riven_stats(stat1, stat2, stat3, stat4, source):
     return tuple(normalized)
 
 
-def sort_positive_stats(stat1, stat2, stat3, stat4):
+def sort_positive_stats(
+    stat1: str, stat2: str, stat3: str, stat4: str
+) -> tuple[str, ...]:
+    """Sort positive stats in alphabetical order."""
     positives = [s for s in [stat1, stat2, stat3] if s]
     positives.sort()
     while len(positives) < 3:
@@ -141,14 +151,14 @@ def sort_positive_stats(stat1, stat2, stat3, stat4):
     return tuple(positives + [stat4])
 
 
-def normalize(weapon, stat1, stat2, stat3, stat4, source):
-    # Normalize weapon name
+def normalize(
+    weapon: str, stat1: str, stat2: str, stat3: str, stat4: str, source: str
+) -> tuple[str, ...] | None:
+    """Normalize weapon name and stats using source-specific mapping."""
     normalized_name = normalize_weapon_name(weapon)
 
-    # Normalize stat names
     normalized_stats = normalize_riven_stats(stat1, stat2, stat3, stat4, source)
     if normalized_stats is None:
         return None
 
-    # Sort positive stats
     return (normalized_name, *sort_positive_stats(*normalized_stats))

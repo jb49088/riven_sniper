@@ -1,13 +1,17 @@
+# TODO: Deduplicate across sources - same seller on riven.market and warframe.market
+# is the same physical riven, should only count once in median calculation
+
 import logging
 import sqlite3
 import statistics
 from collections import defaultdict
+from pathlib import Path
 
 from config import DATABASE, GODROLL_COUNT, MAX_PRICE, SAMPLE_THRESHOLD
 
 
-def init_database(database):
-    """Setup the database with a godrolls table."""
+def init_database(database: Path) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
+    """Initialize database with godrolls table."""
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS godrolls")
@@ -29,18 +33,21 @@ def init_database(database):
     return conn, cursor
 
 
-def build_profiles_from_listings(cursor):
-    """Build price lists for each unique riven profile"""
+def build_profiles_from_listings(
+    cursor: sqlite3.Cursor,
+) -> dict[tuple[str, str, str, str, str], list[int]]:
+    """Build price lists for each unique riven profile."""
     profiles = defaultdict(list)
     for row in cursor.fetchall():
         weapon, stat1, stat2, stat3, stat4, price = row
-        # Stats are already normalized in the listings table
         key = (weapon, stat1, stat2, stat3, stat4)
         profiles[key].append(price)
     return profiles
 
 
-def aggregate_profiles(profiles):
+def aggregate_profiles(
+    profiles: dict[tuple[str, str, str, str, str], list[int]],
+) -> list[tuple[*tuple[str, ...], float, int]]:
     """Build aggregated list with median price and sample count."""
     return [
         (*key, statistics.median(prices), len(prices))
@@ -48,8 +55,10 @@ def aggregate_profiles(profiles):
     ]
 
 
-def group_by_weapon(aggregated):
-    """Group profiles by weapon."""
+def group_profiles_by_weapon(
+    aggregated: list[tuple[*tuple[str, ...], float, int]],
+) -> dict[str, list[tuple[str, str, str, str, str, float, int]]]:
+    """Build profile lists for each unique weapon."""
     weapon_profiles = defaultdict(list)
     for profile in aggregated:
         weapon = profile[0]
@@ -57,7 +66,9 @@ def group_by_weapon(aggregated):
     return weapon_profiles
 
 
-def calculate_percentiles(weapon_rolls):
+def calculate_percentiles(
+    weapon_rolls: list[tuple[str, str, str, str, str, float, int]],
+) -> list[tuple[str, str, str, str, str, float, int, float]]:
     """Calculate sample count percentiles for weapon rolls."""
     sample_counts = [p[6] for p in weapon_rolls]  # p[6] is sample_count
     sorted_counts = sorted(sample_counts)
@@ -70,13 +81,16 @@ def calculate_percentiles(weapon_rolls):
     return profiles_with_percentiles
 
 
-def get_top_rolls(profiles_with_percentiles):
+def determine_godrolls(
+    profiles_with_percentiles: list[tuple[str, str, str, str, str, float, int, float]],
+) -> list[tuple[str, str, str, str, str, float, int, float]]:
+    """Return top weapon rolls by median price above sample threshold."""
     top_rolls = [r for r in profiles_with_percentiles if r[7] >= SAMPLE_THRESHOLD]
     top_rolls.sort(key=lambda x: x[5], reverse=True)  # x[5] is median_price
     return top_rolls[:GODROLL_COUNT]
 
 
-def display_stats(cursor):
+def display_stats(cursor: sqlite3.Cursor) -> None:
     cursor.execute("SELECT COUNT(*) FROM godrolls")
     total = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(DISTINCT weapon) FROM godrolls")
@@ -84,7 +98,7 @@ def display_stats(cursor):
     logging.info(f"Godrolls created: {total} top rolls across {weapons} weapons")
 
 
-def aggregate():
+def aggregate() -> None:
     """Aggregate listings into godrolls table."""
     conn, cursor = init_database(DATABASE)
 
@@ -101,14 +115,14 @@ def aggregate():
 
     # Build and aggregate profiles
     profiles = build_profiles_from_listings(cursor)
-    aggregated = aggregate_profiles(profiles)
-    weapon_profiles = group_by_weapon(aggregated)
+    aggregated_profiles = aggregate_profiles(profiles)
+    aggregated_weapon_profiles = group_profiles_by_weapon(aggregated_profiles)
 
     # Calculate godrolls
     godrolls = []
-    for weapon_rolls in weapon_profiles.values():
+    for weapon_rolls in aggregated_weapon_profiles.values():
         profiles_with_percentiles = calculate_percentiles(weapon_rolls)
-        godrolls.extend(get_top_rolls(profiles_with_percentiles))
+        godrolls.extend(determine_godrolls(profiles_with_percentiles))
 
     # Insert into godrolls table
     cursor.executemany(

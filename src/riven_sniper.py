@@ -2,11 +2,14 @@
 # =                                 RIVEN_SNIPER                                 =
 # ================================================================================
 
+# TODO: investigate read timed out error.
+
 import datetime
 import logging
 import random
 import time
 from pathlib import Path
+from typing import Never
 
 from aggregator import aggregate
 from config import POLL_INTERVAL, POLL_JITTER
@@ -23,7 +26,7 @@ logging.basicConfig(
 )
 
 
-def should_aggregate():
+def should_aggregate() -> bool:
     """Check if aggregator hasn't run today yet."""
     marker_file = Path("logs/.last_aggregate")
     today = datetime.date.today().isoformat()
@@ -43,7 +46,7 @@ def should_aggregate():
     return False
 
 
-def run_pipeline():
+def run_pipeline() -> None:
     """Run one iteration of the pipeline."""
     try:
         poll()
@@ -63,7 +66,7 @@ def run_pipeline():
         logging.error(f"Monitor failed: {e}")
 
 
-def riven_sniper():
+def riven_sniper() -> Never:
     """Main entry point for riven_sniper."""
     logging.info(
         f"Starting riven_sniper (poll interval: {POLL_INTERVAL}s ± {POLL_JITTER}s)"

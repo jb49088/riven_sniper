@@ -4,12 +4,10 @@ import logging
 from config import DATABASE
 from normalizer import normalize
 from poller import (
-    fetch_riven_market_page,
-    get_headers,
+    extract_riven_market_listings,
+    fetch_riven_market_html,
     get_riven_market_params,
-    get_riven_market_url,
     init_database,
-    parse_riven_market_rivens,
 )
 
 logging.basicConfig(
@@ -21,9 +19,9 @@ logging.basicConfig(
 )
 
 
-def get_total_count(url, params, headers):
+def get_total_count(params):
     """Extract total riven and page count."""
-    soup = fetch_riven_market_page(url, params, headers)
+    soup = fetch_riven_market_html()
     pagination_div = soup.select_one("div.pagination")
     if not pagination_div:
         return 0, 1
@@ -96,14 +94,12 @@ def display_stats(start_time, total_scraped, db_path):
 
 def scrape():
     """One-time full scrape of riven.market for historical data."""
-    url = get_riven_market_url()
-    params = get_riven_market_params()
-    headers = get_headers()
-
     db_path, conn, cursor = init_database(DATABASE)
 
+    params = get_riven_market_params()
+
     logging.info("Fetching total count...")
-    total_rivens, total_pages = get_total_count(url, params, headers)
+    total_rivens, total_pages = get_total_count(params)
     logging.info(f"Found {total_rivens} rivens total ({total_pages} pages)")
 
     page = 1
@@ -113,8 +109,8 @@ def scrape():
     while page <= total_pages:
         try:
             params["page"] = page
-            soup = fetch_riven_market_page(url, params, headers)
-            rivens = parse_riven_market_rivens(soup)
+            soup = fetch_riven_market_html()
+            rivens = extract_riven_market_listings(soup)
 
             if rivens:
                 insert_batch(cursor, conn, rivens)
