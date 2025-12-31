@@ -1,5 +1,3 @@
-# TODO: drop redundant cache busting for riven.market
-
 import datetime
 import logging
 import sqlite3
@@ -90,9 +88,6 @@ def fetch_riven_market_html() -> bs4.BeautifulSoup:
     url = get_riven_market_url()
     params = get_riven_market_params()
     headers = get_headers()
-
-    # Update time for cache busting
-    params["time"] = int(datetime.datetime.now().timestamp() * 1000)
 
     r = requests.get(url, params=params, headers=headers, timeout=10)
     r.raise_for_status()
@@ -225,7 +220,6 @@ def insert_listing(
 ) -> None:
     """Normalize and insert a listing into the listings table."""
     if listing["id"] not in existing_ids:
-        # Normalize weapon name and stats using source-specific mapping
         normalized = normalize(
             str(listing["weapon"]),
             str(listing["stat1"]),
