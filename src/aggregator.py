@@ -1,6 +1,3 @@
-# TODO: Deduplicate across sources - same seller on riven.market and warframe.market
-# is the same physical riven, should only count once in median calculation
-
 import logging
 import sqlite3
 import statistics

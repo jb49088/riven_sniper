@@ -79,7 +79,7 @@ def riven_sniper() -> Never:
         poll_count += 1
         start_time = time.time()
 
-        logging.info(f"================ Poll #{poll_count} ================")
+        logging.info(f" Poll #{poll_count} ".center(46, "="))
 
         try:
             run_pipeline()
