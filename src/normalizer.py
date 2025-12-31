@@ -1,5 +1,3 @@
-# TODO: change electric -> electricity in canonical stat mapping and in existing listings
-
 CANONICAL_STATS = {
     "ammo_max",
     "cold",
@@ -9,7 +7,7 @@ CANONICAL_STATS = {
     "crit_chance",
     "crit_damage",
     "damage",
-    "electric",
+    "electricity",
     "finisher",
     "fire_rate",
     "grineer_damage",
@@ -47,7 +45,7 @@ RIVEN_MARKET_TO_CANONICAL = {
     "Slide": "slide_crit_chance",
     "CritDmg": "crit_damage",
     "Damage": "damage",
-    "Electric": "electric",
+    "Electric": "electricity",
     "Heat": "heat",
     "Finisher": "finisher",
     "Speed": "fire_rate",
@@ -82,7 +80,7 @@ WARFRAME_MARKET_TO_CANONICAL = {
     "critical_chance_on_slide_attack": "slide_crit_chance",
     "critical_damage": "crit_damage",
     "base_damage_/_melee_damage": "damage",
-    "electric_damage": "electric",
+    "electric_damage": "electricity",
     "heat_damage": "heat",
     "finisher_damage": "finisher",
     "fire_rate_/_attack_speed": "fire_rate",
