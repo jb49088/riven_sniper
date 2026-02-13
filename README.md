@@ -12,8 +12,9 @@ Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
 Python                           6            173            125            641
 Markdown                         1              8              4             28
+Text                             1              0              0             11
 -------------------------------------------------------------------------------
-SUM:                             7            181            129            669
+SUM:                             8            181            129            680
 -------------------------------------------------------------------------------
 ```
 <!-- CODE_STATISTICS_END -->
@@ -27,6 +28,7 @@ riven_sniper
 ├── data
 ├── logs
 ├── README.md
+├── requirements.txt
 └── src
     ├── aggregator.py
     ├── config.py
@@ -35,6 +37,6 @@ riven_sniper
     ├── poller.py
     └── riven_sniper.py
 
-4 directories, 7 files
+4 directories, 8 files
 ```
 <!-- PROJECT_STRUCTURE_END -->
