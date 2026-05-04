@@ -10,11 +10,11 @@ An automated [Warframe](https://www.warframe.com/) [riven mod](https://warframe.
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Python                           6            173            125            641
+Python                           6            173            125            637
 Markdown                         1              8              4             30
 Text                             1              0              0             11
 -------------------------------------------------------------------------------
-SUM:                             8            181            129            682
+SUM:                             8            181            129            678
 -------------------------------------------------------------------------------
 ```
 <!-- CODE_STATISTICS_END -->
@@ -26,7 +26,6 @@ SUM:                             8            181            129            682
 ```
 riven_sniper
 ├── data
-├── logs
 ├── README.md
 ├── requirements.txt
 └── src
@@ -37,6 +36,6 @@ riven_sniper
     ├── poller.py
     └── riven_sniper.py
 
-4 directories, 8 files
+3 directories, 8 files
 ```
 <!-- PROJECT_STRUCTURE_END -->
